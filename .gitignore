@@ -1,0 +1,8 @@
+/Xray-core/
+/dist/
+*.test
+*.out
+/tmp/
+.idea/
+.vscode/
+.DS_Store

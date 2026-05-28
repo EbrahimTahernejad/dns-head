@@ -232,6 +232,8 @@ UNIT
 
 write_systemd_client() {
   local unit=/etc/systemd/system/dns-head-client.service
+  # Each optional flag is its own pre-formatted env var so systemd's
+  # word-splitting of ${VAR} doesn't choke on values that contain "=".
   cat > "$unit" <<UNIT
 [Unit]
 Description=dns-head tunnel client
@@ -240,7 +242,7 @@ Wants=network-online.target
 
 [Service]
 EnvironmentFile=-/etc/default/dns-head-client
-ExecStart=$PREFIX/dns-head-client -server \${SERVER} -domain \${DOMAIN} -psk \${PSK} -transport \${TRANSPORT} \${EXTRA_ARGS}
+ExecStart=/bin/sh -c '$PREFIX/dns-head-client -server "\$SERVER" -domain "\$DOMAIN" -psk "\$PSK" -transport "\$TRANSPORT" \$CLIENT_ARGS'
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=1048576
@@ -332,19 +334,19 @@ CONF
       "both:expose SOCKS5 and one or more port-forwards")
   fi
 
-  local EXTRA_ARGS=""
+  local CLIENT_ARGS=""
   case "$MODE_V" in
     socks5)
       local SP="${SOCKS_PORT:-}"
       [ -z "$SP" ] && SP=$(prompt "Local SOCKS5 listen address" "127.0.0.1:1080")
-      EXTRA_ARGS="-socks $SP"
+      CLIENT_ARGS="-socks $SP"
       LOCAL_DISPLAY="SOCKS5 $SP"
       ;;
     forward)
       local FW="${FORWARD:-}"
       [ -z "$FW" ] && FW=$(prompt "Forward LOCAL=REMOTE (e.g. :8080=example.com:80)" "")
       [ -z "$FW" ] && die "-forward target required"
-      EXTRA_ARGS="-forward $FW"
+      CLIENT_ARGS="-forward $FW"
       LOCAL_DISPLAY="forward $FW"
       ;;
     both)
@@ -352,7 +354,7 @@ CONF
       [ -z "$SP" ] && SP=$(prompt "Local SOCKS5 listen address" "127.0.0.1:1080")
       local FW="${FORWARD:-}"
       [ -z "$FW" ] && FW=$(prompt "Forward LOCAL=REMOTE (e.g. :8080=example.com:80)" "")
-      EXTRA_ARGS="-socks $SP -forward $FW"
+      CLIENT_ARGS="-socks $SP -forward $FW"
       LOCAL_DISPLAY="SOCKS5 $SP + forward $FW"
       ;;
     *) die "unknown client mode: $MODE_V" ;;
@@ -364,7 +366,7 @@ SERVER=$SERVER_V
 DOMAIN=$DOMAIN_V
 PSK=$PSK_V
 TRANSPORT=$TRANSPORT_V
-EXTRA_ARGS=$EXTRA_ARGS
+CLIENT_ARGS=$CLIENT_ARGS
 DNSH_SKCP_LANES=16
 DNSH_BATCH=1
 DNSH_BATCH_QUEUE=1024

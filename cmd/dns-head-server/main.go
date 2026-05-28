@@ -50,7 +50,7 @@ func main() {
 		log.Fatalf("listen: %v", err)
 	}
 	defer ln.Close()
-	log.Printf("dns-head-server[%s]: listening on udp/%s (domain=%q)", tr.Name(), *listen, *domain)
+	log.Printf("dnsh: listening on udp/%s transport=%s domain=%q", *listen, tr.Name(), *domain)
 	if tr.Name() == "kcp" {
 		log.Printf("kcp tunables: %s", kcptr.LogTunables())
 	}

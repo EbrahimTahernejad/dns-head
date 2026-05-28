@@ -96,7 +96,7 @@ func main() {
 			log.Fatalf("socks listen: %v", err)
 		}
 		listeners = append(listeners, ln)
-		log.Printf("dns-head-client[%s]: SOCKS5 on %s -> %s (domain=%q)", tr.Name(), *socks, *server, *domain)
+		log.Printf("dnsh: SOCKS5 on %s -> %s transport=%s domain=%q", *socks, *server, tr.Name(), *domain)
 		go acceptLoop(ln, func(c net.Conn) { handleSocks(c, rc) })
 	}
 
@@ -110,7 +110,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("bad -forward target %q: %v", fwd.remote, err)
 		}
-		log.Printf("dns-head-client[%s]: forward %s -> %s via %s", tr.Name(), fwd.local, fwd.remote, *server)
+		log.Printf("dnsh: forward %s -> %s via %s transport=%s", fwd.local, fwd.remote, *server, tr.Name())
 		go acceptLoop(ln, func(c net.Conn) { handleForward(c, rc, target) })
 	}
 
